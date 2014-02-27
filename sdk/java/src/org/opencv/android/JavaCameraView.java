@@ -36,6 +36,7 @@ public class JavaCameraView extends CameraBridgeViewBase implements PreviewCallb
     private int mChainIdx = 0;
     private Thread mThread;
     private boolean mStopThread;
+    private int lastActualZoom = 0;
     public int zoomValue = 0;
     public int previousZoomValue = 0;
     protected Camera mCamera;
@@ -233,12 +234,19 @@ public class JavaCameraView extends CameraBridgeViewBase implements PreviewCallb
         }
     }
 
-    
+    public void restoreZoom()
+    {
+    	try {
+    	mCamera.startSmoothZoom(lastActualZoom);
+    	} catch (Exception e)
+    	{
+    		Log.d("Chroma", "EXCEPTION CAUGHT in restoreZoom()!");
+    	}
+    }
     
     public void setZoomValue(int zoomVal) {
-    	Log.d(TAG, "INTO CAMERA ZOOM");
-    	Log.d(TAG, "ZOOM PREVIOUS VALUE: " + this.zoomValue);
-    	Log.d(TAG, "ZOOM CURRENT VALUE: " + zoomVal);
+    	Log.d("Chroma", "ZOOM PREVIOUS VALUE: " + this.zoomValue);
+    	Log.d("Chroma", "ZOOM CURRENT VALUE: " + zoomVal);
     	this.previousZoomValue = this.zoomValue;
     	this.zoomValue = zoomVal;
     	
@@ -249,19 +257,27 @@ public class JavaCameraView extends CameraBridgeViewBase implements PreviewCallb
 		boolean x = params.isZoomSupported();
 		Log.d(TAG, "ZOOM CHECK IF SUPPORTED: " + x);
 		int zoom = params.getZoom();
-		Log.d(TAG, "ZOOM VALUE: " + zoom);
+		Log.d("Chroma", "ZOOM VALUE: " + zoom);
     	if (zoomVal < this.previousZoomValue) {
-    		zoom -= 10;
+    		zoom -= 20;
     		if (zoom < 0) {
     			zoom = 0;
     		}
     	} else if (zoomVal > this.previousZoomValue) {
-    		zoom += 10;
+    		zoom += 20;
     		if (zoom > params.getMaxZoom()) {
     			zoom = params.getMaxZoom();
     		}
     	}
-    	mCamera.startSmoothZoom(zoom);
+    	Log.d("Chroma", "Setting zoom to: " + zoom);
+    	lastActualZoom = zoom;
+    	
+    	try {
+    		mCamera.startSmoothZoom(zoom);
+    	} catch (Exception e)
+    	{
+    		Log.d("Chroma", "EXCEPTION CAUGHT!");
+    	}
     }
     @Override
     protected boolean connectCamera(int width, int height) {
